@@ -1,6 +1,5 @@
 module AdventOfCode.Day6
 
-open System.Diagnostics
 open System.IO
 open AdventOfCode.Shared
 
@@ -17,16 +16,14 @@ type InputField =
     | Barrier
     | GuardStart of Direction
 
-type Field =
-    | Empty
-    | Visited
-    | Barrier
-    | BarrierVisited of Set<Direction>
-
 type Guard =
     { X: int; Y: int; Direction: Direction }
 
-type BarrierOption = { X: int; Y: int }
+
+type Field =
+    | Empty
+    | Visited of Set<Direction>
+    | Barrier
 
 let parseField c =
     match c with
@@ -50,7 +47,7 @@ let loadData () =
                 match field with
                 | GuardStart direction ->
                     guard <- { X = x; Y = y; Direction = direction }
-                    Empty
+                    direction |> Set.singleton |> Visited
                 | InputField.Empty -> Empty
                 | InputField.Barrier -> Barrier
 
@@ -73,86 +70,60 @@ let insideMap data (y, x) =
 
     x >= 0 && x < length1 && y >= 0 && y < length2
 
-let hasVisitedBarrierToTheRight (data: Field array2d) guard =
-    let searchDirection = guard.Direction |> rotateRight
-
-    let fieldsToCheck =
-        match searchDirection with
-        | Up -> data[0 .. guard.Y, guard.X] |> Array.rev
-        | Right -> data[guard.Y, guard.X ..]
-        | Down -> data[guard.Y .., guard.X]
-        | Left -> data[guard.Y, 0 .. guard.X] |> Array.rev
-
-    fieldsToCheck
-    |> Array.tryPick (fun f ->
-        match f with
-        | Empty -> None
-        | Visited -> None
-        | Barrier -> Some false
-        | BarrierVisited directions ->
-            if directions.Contains searchDirection then
-                Some true
-            else
-                Some false)
-    |> Option.contains true
+type SimulationStopReason =
+    | MaxIterationsReached
+    | MapLeft
+    | Looping
 
 type SimulationResult =
     { Iteration: int
-      BarrierOptions: BarrierOption list
-      Successful: bool }
+      StopReason: SimulationStopReason }
 
-let rec simulate iteration data guard barrierOptions =
+let nextFieldCoordinates guard =
+    match guard.Direction with
+    | Up -> (guard.Y - 1, guard.X)
+    | Right -> (guard.Y, guard.X + 1)
+    | Down -> (guard.Y + 1, guard.X)
+    | Left -> (guard.Y, guard.X - 1)
+
+
+let rec simulate iteration data guard onIterationContinue =
     let iteration = iteration + 1
 
-    let nextFieldCoordinates =
-        match guard.Direction with
-        | Up -> (guard.Y - 1, guard.X)
-        | Right -> (guard.Y, guard.X + 1)
-        | Down -> (guard.Y + 1, guard.X)
-        | Left -> (guard.Y, guard.X - 1)
+    let nextFieldCoordinates = nextFieldCoordinates guard
 
     if not (insideMap data nextFieldCoordinates) then
         { Iteration = iteration
-          BarrierOptions = barrierOptions
-          Successful = true }
+          StopReason = MapLeft }
     elif iteration > 10_000 then
         { Iteration = iteration
-          BarrierOptions = barrierOptions
-          Successful = false }
+          StopReason = MaxIterationsReached }
     else
+        onIterationContinue data guard
+
         let y, x = nextFieldCoordinates
         let nextField = data[y, x]
 
         match nextField with
-        | Empty
-        | Visited ->
-            let barrierOptions =
-                if hasVisitedBarrierToTheRight data guard then
-                    { X = x; Y = y } :: barrierOptions
-                else
-                    barrierOptions
-
-            data[guard.Y, guard.X] <- Visited
-            data[y, x] <- Visited
-            simulate iteration data { guard with X = x; Y = y } barrierOptions
+        | Empty ->
+            let guard = { guard with X = x; Y = y }
+            data[y, x] <- guard.Direction |> Set.singleton |> Visited
+            simulate iteration data guard onIterationContinue
+        | Visited directions ->
+            if directions |> Set.contains guard.Direction then
+                { Iteration = iteration
+                  StopReason = Looping }
+            else
+                let guard = { guard with X = x; Y = y }
+                data[y, x] <- Set.add guard.Direction directions |> Visited
+                simulate iteration data guard onIterationContinue
         | Barrier ->
-            data[y, x] <- [ guard.Direction ] |> Set.ofList |> BarrierVisited
-
             simulate
                 iteration
                 data
                 { guard with
                     Direction = rotateRight guard.Direction }
-                barrierOptions
-        | BarrierVisited directions ->
-            data[y, x] <- guard.Direction |> directions.Add |> BarrierVisited
-
-            simulate
-                iteration
-                data
-                { guard with
-                    Direction = rotateRight guard.Direction }
-                barrierOptions
+                onIterationContinue
 
 
 let flatten data =
@@ -170,16 +141,37 @@ type PuzzleResult =
       FoundPossibleBarriers: int }
 
 let run () =
-    let watch = Stopwatch()
-    watch.Start()
+    let mutable possibleBarrierCounter = 0
+
+    let searchForLoops data guard =
+        let noop a b = ()
+        let data = Array2D.copy data
+
+        let y, x = nextFieldCoordinates guard
+        data[y, x] <- Barrier
+
+        let result = simulate 0 data guard noop
+
+        match result.StopReason with
+        | MaxIterationsReached -> ()
+        | MapLeft -> ()
+        | Looping -> possibleBarrierCounter <- possibleBarrierCounter + 1
+
+
     let data, guard = loadData ()
-    let simulationResult = simulate 0 data guard []
-    watch.Stop()
-    watch.Elapsed |> dumpIgnore
+    let simulationResult = simulate 0 data guard searchForLoops
 
     // simulationResult |> dumpIgnore
-    simulationResult.Successful |> dumpNameIgnore "Simulation success"
+    simulationResult.StopReason |> dumpNameIgnore "Simulation success"
     simulationResult.Iteration |> dumpNameIgnore "Simulation iterations"
 
-    { SumVisitedFields = data |> flatten |> Array.filter (fun f -> f = Visited) |> Array.length
-      FoundPossibleBarriers = simulationResult.BarrierOptions.Length }
+    { SumVisitedFields =
+        data
+        |> flatten
+        |> Array.filter (fun f ->
+            match f with
+            | Empty -> false
+            | Visited _ -> true
+            | Barrier -> false)
+        |> Array.length
+      FoundPossibleBarriers = possibleBarrierCounter }
