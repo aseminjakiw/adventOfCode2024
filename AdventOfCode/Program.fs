@@ -29,9 +29,12 @@ printfn ""
 
 // printfn $"Day 8 part 1: %A{Day8.Part1.run ()}"
 // printfn $"Day 8 part 2: %A{Day8.Part2.run ()}"
+//
+// printfn $"Day 9 part 1: %A{Day9.Part1.run ()}"
+// printfn $"Day 9 part 2: %A{Day9.Part2.run ()}"
 
-printfn $"Day 9 part 1: %A{Day9.Part1.run ()}"
-printfn $"Day 9 part 2: %A{Day9.Part2.run ()}"
+printfn $"Day 10 part 1: %A{Day10.Part1.run ()}"
+printfn $"Day 10 part 2: %A{Day10.Part2.run ()}"
 
 printfn ""
 printfn "finished"
