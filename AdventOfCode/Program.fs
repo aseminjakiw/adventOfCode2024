@@ -2,6 +2,7 @@
 
 
 
+
 open AdventOfCode
 
 printfn "Advent of code 2024"
@@ -33,8 +34,12 @@ printfn ""
 // printfn $"Day 9 part 1: %A{Day9.Part1.run ()}"
 // printfn $"Day 9 part 2: %A{Day9.Part2.run ()}"
 
-printfn $"Day 10 part 1: %A{Day10.Part1.run ()}"
-printfn $"Day 10 part 2: %A{Day10.Part2.run ()}"
+// printfn $"Day 10 part 1: %A{Day10.Part1.run ()}"
+// printfn $"Day 10 part 2: %A{Day10.Part2.run ()}"
+
+printfn $"Day 11 part 1: %A{Day11.Part1.run ()}"
+printfn $"Day 11 part 2: %A{Day11.Part2.run ()}"
+
 
 printfn ""
 printfn "finished"
