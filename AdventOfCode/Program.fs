@@ -3,7 +3,10 @@
 
 
 
+open System.Diagnostics
 open AdventOfCode
+open AdventOfCode.Shared
+open BenchmarkDotNet.Running
 
 printfn "Advent of code 2024"
 printfn ""
@@ -37,8 +40,25 @@ printfn ""
 // printfn $"Day 10 part 1: %A{Day10.Part1.run ()}"
 // printfn $"Day 10 part 2: %A{Day10.Part2.run ()}"
 
-printfn $"Day 11 part 1: %A{Day11.Part1.run ()}"
-printfn $"Day 11 part 2: %A{Day11.Part2.run ()}"
+let iterations = 40
+let day11Data = Day11.loadData ()
+// printfn $"Day 11 1: %A{Day11.Solution1.run iterations day11Data}"
+// printfn $"Day 11 2: %A{Day11.Solution2.run iterations day11Data}"
+// printfn $"Day 11 3: %A{Day11.Solution3.run iterations day11Data}"
+// printfn $"Day 11 4: %A{Day11.Solution4.run iterations day11Data}"
+// printfn $"Day 11 5: %A{Day11.Solution5.run iterations day11Data}"
+// printfn $"Day 11 6: %A{Day11.Solution6.run iterations day11Data}"
+// printfn $"Day 11 7: %A{Day11.Solution7.run iterations day11Data}"
+// printfn $"Day 11 8: %A{Day11.Solution8.run iterations day11Data}"
+// printfn $"Day 11 9: %A{Day11.Solution9.run iterations day11Data}"
+let watch = Stopwatch()
+watch.Start()
+printfn $"Day 11 10: %A{Day11.Solution10.run iterations day11Data}"
+watch.Stop()
+watch.Elapsed |> dumpIgnore
+
+
+let _ = BenchmarkRunner.Run<Day11.Benchmark>()
 
 
 printfn ""
