@@ -3,6 +3,7 @@ module AdventOfCode.Day11
 open System
 open System.Collections.Generic
 open System.IO
+open AdventOfCode.Day6
 open AdventOfCode.Day8
 open BenchmarkDotNet.Attributes
 
@@ -291,19 +292,271 @@ module Solution10 =
     let run maxIterations data =
         parallelRun maxIterations data Solution9.run
 
+module Solution11 =
+    open Solution9
+    [<TailCall>]
+    let rec repeatProcess (stack: Stack<ItemStruct>, counter : int64) =
+        let mutable hasItem, item = stack.TryPeek()
 
+        if not hasItem then
+            counter
+        else if item.RemainingIterations = 0 then
+            stack.Pop() |> ignore
+            repeatProcess (stack, (counter + 1L))
+        else
+            item.RemainingIterations <- item.RemainingIterations - 1
+
+            let newNumber =
+                match item.Number with
+                | 0L -> 1L
+                | HasEvenNumberDigits numberString ->
+                    let firstNumber = numberString.Substring(0, numberString.Length / 2) |> Int64.Parse
+
+                    let secondNumber = numberString.Substring(numberString.Length / 2) |> Int64.Parse
+
+                    ItemStruct(RemainingIterations = item.RemainingIterations, Number = secondNumber)
+                    |> stack.Push
+
+                    firstNumber
+                | _ -> item.Number * 2024L
+
+            item.Number <- newNumber
+
+
+            repeatProcess (stack, counter)
+
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        let stack = Stack()
+
+        data
+        |> Seq.toArray
+        |> Array.map (fun number -> ItemStruct(RemainingIterations = maxIterations, Number = number))
+        |> pushOn stack
+
+        repeatProcess (stack, 0)
+
+
+module Solution12 =
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        parallelRun maxIterations data Solution11.run
+
+module Solution13 =
+    open Solution9
+    type Range = {
+        Lower: int64
+        Upper: int64
+        Divisor: int64
+    }
+    
+    let inRange x range =        x >= range.Lower && x <= range.Upper
+    
+    let ranges =
+        seq{
+            for i in 1..9 do
+                let divisor = (pown 10L i)
+                let lower = (pown 10L ((i*2)-1))
+                let upper = lower * 10L - 1L
+                
+                yield {Lower = lower; Upper = upper; Divisor = divisor}
+        }
+        |> Seq.toArray
+        
+    let (|InAnyRange|_|) ranges x =
+        ranges
+        |> Array.tryFind (inRange x) 
+        
+    [<TailCall>]
+    let rec repeatProcess (stack: Stack<ItemStruct>) counter =
+        let mutable hasItem, item = stack.TryPeek()
+
+        if not hasItem then
+            counter
+        else if item.RemainingIterations = 0 then
+            stack.Pop() |> ignore
+            repeatProcess stack (counter + 1L)
+        else
+            item.RemainingIterations <- item.RemainingIterations - 1
+
+            let newNumber =
+                match item.Number with
+                | 0L -> 1L
+                | InAnyRange ranges matchingRange -> 
+                    let leftNumber = item.Number / matchingRange.Divisor
+                    let rightNumber = item.Number - (leftNumber * matchingRange.Divisor)
+                    
+                    ItemStruct(RemainingIterations = item.RemainingIterations, Number = rightNumber)
+                    |> stack.Push
+
+                    leftNumber                
+                | _ -> item.Number * 2024L
+
+            item.Number <- newNumber
+
+
+            repeatProcess stack counter
+
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        let stack = Stack()
+
+        data
+        |> Seq.toArray
+        |> Array.map (fun number -> ItemStruct(RemainingIterations = maxIterations, Number = number))
+        |> pushOn stack
+
+        repeatProcess stack 0
+
+
+module Solution14 =
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        parallelRun maxIterations data Solution13.run
+        
+module Solution15 =
+    open Solution9
+    type Range =
+        struct
+            val Lower: int64 
+            val Upper: int64
+            val Divisor: int64
+            new(lower, upper, divisor) = { Lower = lower; Upper = upper; Divisor = divisor }
+        end
+    
+    let inRange x (range:Range) =        x >= range.Lower && x <= range.Upper
+    
+    let ranges =
+        seq{
+            for i in 1..9 do
+                let divisor = (pown 10L i)
+                let lower = (pown 10L ((i*2)-1))
+                let upper = lower * 10L - 1L
+                yield Range(lower, upper, divisor)
+        }
+        |> Seq.toArray
+        
+    let (|InAnyRange|_|) ranges x =
+        ranges
+        |> Array.tryFind (inRange x) 
+        
+    [<TailCall>]
+    let rec repeatProcess (stack: Stack<ItemStruct>) counter =
+        let mutable hasItem, item = stack.TryPeek()
+
+        if not hasItem then
+            counter
+        else if item.RemainingIterations = 0 then
+            stack.Pop() |> ignore
+            repeatProcess stack (counter + 1L)
+        else
+            item.RemainingIterations <- item.RemainingIterations - 1
+
+            let newNumber =
+                match item.Number with
+                | 0L -> 1L
+                | InAnyRange ranges matchingRange -> 
+                    let leftNumber = item.Number / matchingRange.Divisor
+                    let rightNumber = item.Number - (leftNumber * matchingRange.Divisor)
+                    
+                    ItemStruct(RemainingIterations = item.RemainingIterations, Number = rightNumber)
+                    |> stack.Push
+
+                    leftNumber                
+                | _ -> item.Number * 2024L
+
+            item.Number <- newNumber
+
+
+            repeatProcess stack counter
+
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        let stack = Stack()
+
+        data
+        |> Seq.toArray
+        |> Array.map (fun number -> ItemStruct(RemainingIterations = maxIterations, Number = number))
+        |> pushOn stack
+
+        repeatProcess stack 0
+
+module Solution16 =
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        parallelRun maxIterations data Solution15.run
+
+module Solution17 =
+    open Solution9
+        
+    let processNumber (stack:Stack<_>) divisor remainingIterations number=
+            let leftNumber = number / divisor
+            let rightNumber = number - (leftNumber * divisor)
+            
+            ItemStruct(RemainingIterations = remainingIterations, Number = rightNumber)
+            |> stack.Push
+
+            leftNumber   
+        
+    [<TailCall>]
+    let rec repeatProcess (stack: Stack<ItemStruct>) counter =
+        let mutable hasItem, item = stack.TryPeek()
+
+        if not hasItem then
+            counter
+        else if item.RemainingIterations = 0 then
+            stack.Pop() |> ignore
+            repeatProcess stack (counter + 1L)
+        else
+            item.RemainingIterations <- item.RemainingIterations - 1
+
+            let newNumber =
+                match item.Number with
+                | 0L -> 1L
+                | x when x >= 10L && x <= 99L -> processNumber stack 10L item.RemainingIterations x
+                | x when x >= 1000L && x <= 9999L -> processNumber stack 100L item.RemainingIterations x
+                | x when x >= 100000L && x <= 999999L -> processNumber stack 1000L item.RemainingIterations x
+                | x when x >= 10000000L && x <= 99999999L -> processNumber stack 10000L item.RemainingIterations x
+                | x when x >= 1000000000L && x <= 9999999999L -> processNumber stack 100000L item.RemainingIterations x
+                | x when x >= 100000000000L && x <= 999999999999L -> processNumber stack 1000000L item.RemainingIterations x
+                | x when x >= 10000000000000L && x <= 99999999999999L -> processNumber stack 10000000L item.RemainingIterations x
+                | x when x >= 1000000000000000L && x <= 9999999999999999L -> processNumber stack 100000000L item.RemainingIterations x
+                | x when x >= 100000000000000000L && x <= 999999999999999999L -> processNumber stack 1000000000L item.RemainingIterations x          
+                | _ -> item.Number * 2024L
+
+            item.Number <- newNumber
+
+
+            repeatProcess stack counter
+
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        let stack = Stack()
+
+        data
+        |> Seq.toArray
+        |> Array.map (fun number -> ItemStruct(RemainingIterations = maxIterations, Number = number))
+        |> pushOn stack
+
+        repeatProcess stack 0
+
+module Solution18 =
+    // using a stack with depth first search, tail recursion, parallize on 24 tasks
+    let run maxIterations data =
+        parallelRun maxIterations data Solution17.run
+        
 [<MemoryDiagnoser>]
 type Benchmark() =
     let mutable maxIterations = 5
     let data = loadData ()
 
-    [<Params(1, 10, 20, 30, 40)>]
+    [<Params(10,30)>]
     member val Iterations = 1 with get, set
 
     [<GlobalSetup>]
     member this.Setup() = maxIterations <- this.Iterations
 
-    // [<Benchmark(Baseline = true)>]
+    // [<Benchmark>]
     // member this.Solution1() = Solution1.run maxIterations data
     //
     // [<Benchmark>]
@@ -312,23 +565,35 @@ type Benchmark() =
     // [<Benchmark>]
     // member this.Solution3() = Solution3.run maxIterations data
 
-    // [<Benchmark(Baseline = true)>]
-    // member this.Solution4() = Solution4.run maxIterations data
+    [<Benchmark(Baseline = true)>]
+    member this.Solution4() = Solution4.run maxIterations data
 
     // [<Benchmark>]
     // member this.Solution5() = Solution5.run maxIterations data
     //
     // [<Benchmark>]
     // member this.Solution6() = Solution6.run maxIterations data
-
+    //
     // [<Benchmark>]
     // member this.Solution7() = Solution7.run maxIterations data
-
+    //
     // [<Benchmark>]
     // member this.Solution8() = Solution8.run maxIterations data
-
+    //
     // [<Benchmark>]
     // member this.Solution9() = Solution9.run maxIterations data
+    //
+    // [<Benchmark>]
+    // member this.Solution10() = Solution10.run maxIterations data
+    
+    // [<Benchmark>]
+    // member this.Solution11() = Solution11.run maxIterations data
+
+    // [<Benchmark>]
+    // member this.Solution12() = Solution12.run maxIterations data
+    //
+    // [<Benchmark>]
+    // member this.Solution13() = Solution13.run maxIterations data
 
     [<Benchmark>]
-    member this.Solution10() = Solution10.run maxIterations data
+    member this.Solution14() = Solution14.run maxIterations data
