@@ -3,9 +3,7 @@
 
 
 
-open System.Diagnostics
 open AdventOfCode
-open AdventOfCode.Shared
 open BenchmarkDotNet.Running
 
 printfn "Advent of code 2024"
@@ -42,20 +40,38 @@ printfn ""
 
 let iterations = 10
 let day11Data = Day11.loadData ()
-printfn $"Day 11 1: %A{Day11.Solution1.run iterations day11Data}"
-printfn $"Day 11 2: %A{Day11.Solution2.run iterations day11Data}"
-printfn $"Day 11 3: %A{Day11.Solution3.run iterations day11Data}"
-printfn $"Day 11 4: %A{Day11.Solution4.run iterations day11Data}"
-printfn $"Day 11 5: %A{Day11.Solution5.run iterations day11Data}"
-printfn $"Day 11 6: %A{Day11.Solution6.run iterations day11Data}"
-printfn $"Day 11 7: %A{Day11.Solution7.run iterations day11Data}"
-printfn $"Day 11 8: %A{Day11.Solution8.run iterations day11Data}"
-printfn $"Day 11 9: %A{Day11.Solution9.run iterations day11Data}"
-printfn $"Day 11 10: %A{Day11.Solution10.run iterations day11Data}"
-printfn $"Day 11 11: %A{Day11.Solution11.run iterations day11Data}"
-printfn $"Day 11 12: %A{Day11.Solution12.run iterations day11Data}"
-printfn $"Day 11 13: %A{Day11.Solution13.run iterations day11Data}"
-printfn $"Day 11 14: %A{Day11.Solution14.run iterations day11Data}"
+
+let results =
+    [ Day11.Solution1.run
+      Day11.Solution2.run
+      Day11.Solution3.run
+      Day11.Solution4.run
+      Day11.Solution5.run
+      Day11.Solution6.run
+      Day11.Solution7.run
+      Day11.Solution8.run
+      Day11.Solution9.run
+      Day11.Solution10.run
+      Day11.Solution11.run
+      Day11.Solution12.run
+      Day11.Solution13.run
+      Day11.Solution14.run
+      Day11.Solution15.run
+      Day11.Solution16.run
+      Day11.Solution17.run
+      Day11.Solution18.run ]
+    |> List.mapi (fun index solution ->
+        let result = solution iterations day11Data
+        let solutionNumber = index + 1
+        printfn "Day 11 %i: %i" solutionNumber result
+        result)
+
+results
+|> List.groupBy id
+|> List.length
+|> function
+    | 1 -> ()
+    | _ -> failwith "incorrect solution found"
 
 
 let _ = BenchmarkRunner.Run<Day11.Benchmark>()
@@ -63,5 +79,3 @@ let _ = BenchmarkRunner.Run<Day11.Benchmark>()
 
 printfn ""
 printfn "finished"
-
-
