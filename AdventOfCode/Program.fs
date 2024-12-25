@@ -4,7 +4,6 @@
 
 
 open AdventOfCode
-open BenchmarkDotNet.Running
 
 printfn "Advent of code 2024"
 printfn ""
@@ -38,43 +37,10 @@ printfn ""
 // printfn $"Day 10 part 1: %A{Day10.Part1.run ()}"
 // printfn $"Day 10 part 2: %A{Day10.Part2.run ()}"
 
-let iterations = 10
-let day11Data = Day11.loadData ()
-
-let results =
-    [ Day11.Solution1.run
-      Day11.Solution2.run
-      Day11.Solution3.run
-      Day11.Solution4.run
-      Day11.Solution5.run
-      Day11.Solution6.run
-      Day11.Solution7.run
-      Day11.Solution8.run
-      Day11.Solution9.run
-      Day11.Solution10.run
-      Day11.Solution11.run
-      Day11.Solution12.run
-      Day11.Solution13.run
-      Day11.Solution14.run
-      Day11.Solution15.run
-      Day11.Solution16.run
-      Day11.Solution17.run
-      Day11.Solution18.run ]
-    |> List.mapi (fun index solution ->
-        let result = solution iterations day11Data
-        let solutionNumber = index + 1
-        printfn "Day 11 %i: %i" solutionNumber result
-        result)
-
-results
-|> List.groupBy id
-|> List.length
-|> function
-    | 1 -> ()
-    | _ -> failwith "incorrect solution found"
+printfn $"Day 11 part 1: %A{Day11.Part1.run ()}"
+printfn $"Day 11 part 2: %A{Day11.Part2.run ()}"
 
 
-let _ = BenchmarkRunner.Run<Day11.Benchmark>()
 
 
 printfn ""
