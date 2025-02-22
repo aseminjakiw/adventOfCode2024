@@ -40,6 +40,9 @@ printfn ""
 printfn $"Day 11 part 1: %A{Day11.Part1.run ()}"
 printfn $"Day 11 part 2: %A{Day11.Part2.run ()}"
 
+printfn $"Day 12 part 1: %A{Day12.Part1.run ()}"
+printfn $"Day 12 part 2: %A{Day12.Part2.run ()}"
+
 
 
 
